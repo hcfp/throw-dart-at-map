@@ -36,41 +36,56 @@ const center = {
     lng: -2.4282
 };
 
-const card = (
-    <React.Fragment>
-        <CardContent>
-            <Map />
-        </CardContent>
-        <CardActions>
-            <Button variant="contained" sx={{ margin: 'auto' }} size="large">Throw</Button>
-        </CardActions>
-    </React.Fragment>
-);
+
+const coordURL = "https://api.3geonames.org/?randomland=yes&json=1";
+
+const getRandomCoords = async () => {
+    // fetch data from coordURL
+    const response = await fetch(coordURL, { method: 'GET' });
+    const data = await response.json();
+    return {lat: Number(data.nearest.latt), lng: Number(data.nearest.longt)};
+}
 
 function App() {
+    const [coords, setCoords] = React.useState(center);
+
+    const handleThrow = async () => {
+        console.log("Throwing a dart at a map");
+        const randCoords = await getRandomCoords();
+        setCoords(randCoords);
+    }
+    
     return (
         <ThemeProvider theme={lightTheme} >
             <CssBaseline />
             <TitleBar />
             <main>
-                <Card variant="outlined" sx={{ maxWidth: "75%", mx: "auto", mt:"20px"}}>{card}</Card>
+                <Card variant="outlined" sx={{ maxWidth: "75%", mx: "auto", mt: "20px" }}>
+                    <CardContent>
+                        <Map coords={coords} />
+                    </CardContent>
+                    <CardActions>
+                        <Button variant="contained" sx={{ margin: 'auto' }} size="large" onClick={handleThrow}>Throw</Button>
+                    </CardActions>
+                </Card>
             </main>
         </ThemeProvider >
     );
 }
 
-function Map() {
+const Map = (props) => {
+    console.log(props.coords);
     return (
         <LoadScript
             googleMapsApiKey="AIzaSyBCNGz2YRr-u5F5PVO-OXwX6lkz-or9Ud0"
         >
             <GoogleMap
                 mapContainerStyle={containerStyle}
-                center={center}
-                zoom={12}
+                center={props.coords}
+                zoom={5}
             >
                 <>
-                    <Marker position={center} />
+                    <Marker position={props.coords} />
                 </>
             </GoogleMap>
         </LoadScript>
@@ -81,13 +96,11 @@ function TitleBar() {
     return (
         <AppBar position="relative">
             <Toolbar>
-                <TravelExploreIcon sx={{fontSize: '55px'}} />
-                <Typography variant="h2" sx={{flexGrow: 1}}>Throw a Dart at a Map</Typography>
-                
-                
-                <FlightTakeoffIcon fontSize="large"/>
-                <Typography variant="h6" sx={{mx:2}}>Put trust in the dart and see where it takes you</Typography>
-                <FlightLandIcon fontSize="large"/>
+                <TravelExploreIcon sx={{ fontSize: '55px' }} />
+                <Typography variant="h2" sx={{ flexGrow: 1 }}>Throw a Dart at a Map</Typography>
+                <FlightTakeoffIcon fontSize="large" />
+                <Typography variant="h6" sx={{ mx: 2 }}>Put trust in the dart and see where it takes you</Typography>
+                <FlightLandIcon fontSize="large" />
             </Toolbar>
         </AppBar>
     );
