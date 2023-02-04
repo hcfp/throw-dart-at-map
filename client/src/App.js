@@ -36,14 +36,14 @@ const center = {
     lng: -2.4282
 };
 
-
-const coordURL = "https://api.3geonames.org/?randomland=yes&json=1";
+const coordAPI = "/api/randomCoords";
 
 const getRandomCoords = async () => {
     // fetch data from coordURL
-    const response = await fetch(coordURL, { method: 'GET' });
+    const response = await fetch(coordAPI, { method: 'GET' });
     const data = await response.json();
-    return {lat: Number(data.nearest.latt), lng: Number(data.nearest.longt)};
+    console.log(data);
+    return { lat: Number(data.lat), lng: Number(data.lng)};
 }
 
 function App() {
@@ -74,7 +74,6 @@ function App() {
 }
 
 const Map = (props) => {
-    console.log(props.coords);
     return (
         <LoadScript
             googleMapsApiKey="AIzaSyBCNGz2YRr-u5F5PVO-OXwX6lkz-or9Ud0"
