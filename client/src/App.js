@@ -32,8 +32,8 @@ const lightTheme = createTheme({
 });
 
 const center = {
-    lat: 53.5769,
-    lng: -2.4282
+    lat: -26.235277777,
+    lng: +28.37
 };
 
 const coordAPI = "/api/randomLocation";
@@ -51,7 +51,6 @@ function App() {
         const randomLocation = await getRandomLocation();
         setLocation(randomLocation);
     }
-    console.log(location);
     return (
         <ThemeProvider theme={lightTheme} >
             <CssBaseline />
@@ -71,57 +70,74 @@ function App() {
     );
 }
 
+const getNameFromState = (state) => {
+    if (state) {
+        let regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
+        return regionNames.of(state);
+    }
+    return null;
+}
+
+const CitiesInfo = (props) => {
+    // Check if both exists
+    if ((props.location.largest && props.location.closestMajor)) {
+        // If they are the same, only display one
+        if (props.location.largest.id === props.location.closestMajor.id) {
+            return (
+                <>
+                    <Typography variant="h5">A nearby town or city is {props.location.largest.name} with a population of {props.location.largest.population} ({props.location.largest.distance}KM away)</Typography>
+                </>
+            )
+        }
+        else {
+            return (
+                <>
+                    <Typography variant="h5">The largest nearby town or city is {props.location.largest.name} with a population of {props.location.largest.population} ({props.location.largest.distance}KM away)</Typography>
+                    <Typography variant="h5">The closest major town or city is {props.location.closestMajor.name} with a population of {props.location.closestMajor.population} ({props.location.closestMajor.distance}KM away)</Typography>
+                </>
+            )
+        }
+    }
+
+    // If neither exist display no nearby cities
+    if (!props.location.largest && !props.location.closestMajor) {
+        return <Typography variant="h5">No notable nearby town or cities</Typography>
+    }
+
+    // Handle if only one exists
+    if (props.location.largest && !props.location.closestMajor) {
+        return <Typography variant="h5">The largest nearby town or city is {props.location.largest.name} with a population of {props.location.largest.population} ({props.location.largest.distance}KM away)</Typography>
+    }
+    return <Typography variant="h5">The closest town or city is {props.location.closestMajor.name} with a population of {props.location.closestMajor.population} ({props.location.closestMajor.distance}KM away)</Typography>
+}
+
 const LocationInfo = (props) => {
+    const country = getNameFromState(props.location.location.state);
     return (
-        <>
-            <Nearest location={props.location.nearest} />
-            <Major location={props.location.major} />
-        </>
+        <Card variant="outlined" sx={{ maxWidth: "75%", mx: "auto", mt: "20px" }}>
+            <CardContent>
+                <Typography variant="h4" sx={{ mb: "20px" }}>Your dart landed near: {props.location.location.city} {country ? "in " + country : null}</Typography>
+                <CitiesInfo location={props.location} />
+            </CardContent>
+        </Card>
     )
-
-}
-
-const Nearest = (props) => {
-    return <Typography variant="h6">{props.location.city}</Typography>
-}
-
-const Major = (props) => {
-    return <Typography variant="h6">{props.location.city}</Typography>
-}
-
-
-const Markers = (props) => {
-    if (props.nearest.lat === props.major.lat && props.nearest.lng === props.major.lng) {
-        return <Marker position={props.nearest} />
-    }
-    else {
-        return (
-            <>
-                <Marker position={props.nearest} label={"Nearest"} />
-                <Marker position={props.major} label={"Major"} />
-            </>
-        )
-    }
 }
 
 const Map = (props) => {
-    let nearestCoords = center;
-    let majorCoords = center;
+    let coords = center
     if (props.location) {
-        nearestCoords = { lat: Number(props.location.nearest.latt), lng: Number(props.location.nearest.longt) };
-        majorCoords = { lat: Number(props.location.major.latt), lng: Number(props.location.major.longt) };
+        coords = { lat: Number(props.location.location.latt), lng: Number(props.location.location.longt) };
     }
-
     return (
         <LoadScript
             googleMapsApiKey="AIzaSyBCNGz2YRr-u5F5PVO-OXwX6lkz-or9Ud0"
         >
             <GoogleMap
                 mapContainerStyle={containerStyle}
-                center={nearestCoords}
+                center={coords}
                 zoom={5}
             >
-                <Markers nearest={nearestCoords} major={majorCoords} />
+                <Marker position={coords} />
             </GoogleMap>
         </LoadScript>
     )
