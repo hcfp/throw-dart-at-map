@@ -36,25 +36,22 @@ const center = {
     lng: -2.4282
 };
 
-const coordAPI = "/api/randomCoords";
+const coordAPI = "/api/randomLocation";
 
-const getRandomCoords = async () => {
-    // fetch data from coordURL
+const getRandomLocation = async () => {
     const response = await fetch(coordAPI, { method: 'GET' });
     const data = await response.json();
-    console.log(data);
-    return { lat: Number(data.lat), lng: Number(data.lng)};
+    return data;
 }
 
 function App() {
-    const [coords, setCoords] = React.useState(center);
+    const [location, setLocation] = React.useState(null);
 
     const handleThrow = async () => {
-        console.log("Throwing a dart at a map");
-        const randCoords = await getRandomCoords();
-        setCoords(randCoords);
+        const randomLocation = await getRandomLocation();
+        setLocation(randomLocation);
     }
-    
+    console.log(location);
     return (
         <ThemeProvider theme={lightTheme} >
             <CssBaseline />
@@ -62,30 +59,69 @@ function App() {
             <main>
                 <Card variant="outlined" sx={{ maxWidth: "75%", mx: "auto", mt: "20px" }}>
                     <CardContent>
-                        <Map coords={coords} />
+                        <Map location={location} />
                     </CardContent>
                     <CardActions>
                         <Button variant="contained" sx={{ margin: 'auto' }} size="large" onClick={handleThrow}>Throw</Button>
                     </CardActions>
                 </Card>
+                {location ? <LocationInfo location={location} /> : null}
             </main>
-        </ThemeProvider >
+        </ThemeProvider>
     );
 }
 
+const LocationInfo = (props) => {
+    return (
+        <>
+            <Nearest location={props.location.nearest} />
+            <Major location={props.location.major} />
+        </>
+    )
+
+}
+
+const Nearest = (props) => {
+    return <Typography variant="h6">{props.location.city}</Typography>
+}
+
+const Major = (props) => {
+    return <Typography variant="h6">{props.location.city}</Typography>
+}
+
+
+const Markers = (props) => {
+    if (props.nearest.lat === props.major.lat && props.nearest.lng === props.major.lng) {
+        return <Marker position={props.nearest} />
+    }
+    else {
+        return (
+            <>
+                <Marker position={props.nearest} label={"Nearest"} />
+                <Marker position={props.major} label={"Major"} />
+            </>
+        )
+    }
+}
+
 const Map = (props) => {
+    let nearestCoords = center;
+    let majorCoords = center;
+    if (props.location) {
+        nearestCoords = { lat: Number(props.location.nearest.latt), lng: Number(props.location.nearest.longt) };
+        majorCoords = { lat: Number(props.location.major.latt), lng: Number(props.location.major.longt) };
+    }
+
     return (
         <LoadScript
             googleMapsApiKey="AIzaSyBCNGz2YRr-u5F5PVO-OXwX6lkz-or9Ud0"
         >
             <GoogleMap
                 mapContainerStyle={containerStyle}
-                center={props.coords}
+                center={nearestCoords}
                 zoom={5}
             >
-                <>
-                    <Marker position={props.coords} />
-                </>
+                <Markers nearest={nearestCoords} major={majorCoords} />
             </GoogleMap>
         </LoadScript>
     )

@@ -6,15 +6,15 @@ const app = express();
 
 const coordURL = "https://api.3geonames.org/?randomland=yes&json=1";
 
-const getRandomCoords = async () => {
+const getRandomLocation = async () => {
     const response = await fetch(coordURL, { method: 'GET' });
-    const data = await response.json();;
-    return {lat: Number(data.nearest.latt), lng: Number(data.nearest.longt)};
+    const data = await response.json();
+    return {nearest: data.nearest, major: data.major};
 }
 
-app.get("/api/randomCoords", async (req, res) => {
-    const coords = await getRandomCoords();
-    res.json(coords);
+app.get("/api/randomLocation", async (req, res) => {
+    const location = await getRandomLocation();
+    res.json(location);
 });
 
 app.listen(PORT, () => {
