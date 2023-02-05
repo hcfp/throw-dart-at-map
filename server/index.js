@@ -16,31 +16,31 @@ const getNearbyCities = async (lat, lng) => {
     const data = await response.json();
 
     let dataArray = data.data;
-
+    console.log("Nearby places", dataArray);
     let largestNearbyCity = null;
     let closestNearbyCity = null;
     if (dataArray.length !== 0) {
         largestNearbyCity = data.data[0];
-
         closestNearbyCity = dataArray.reduce(function (prev, curr) {
             return prev.distance < curr.distance ? prev : curr;
         });
     }
 
-    return {largest : largestNearbyCity, closestMajor: closestNearbyCity};
+    return { largest: largestNearbyCity, closestMajor: closestNearbyCity };
 }
 
 const getRandomLocation = async () => {
     const response = await fetch(coordURL, { method: 'GET' });
     const data = await response.json();
+    console.log("location", data);
     return data.nearest;
 }
 
 app.get("/api/randomLocation", async (req, res) => {
     const location = await getRandomLocation();
     const cities = await getNearbyCities(location.latt, location.longt);
-    const locationCities = {location: location, ...cities};
-    console.log(locationCities);
+    const locationCities = { location: location, ...cities };
+    console.log("Final", locationCities);
     res.json(locationCities);
 });
 

@@ -9,7 +9,7 @@ import CssBaseline from '@mui/material/CssBaseline/CssBaseline';
 
 const MapContainerStyle = {
     width: '100%',
-    height: '75vh',
+    height: '70vh',
 };
 
 const lightTheme = createTheme({
@@ -66,7 +66,7 @@ function App() {
 }
 
 const getNameFromState = (state) => {
-    if (state) {
+    if (typeof state === 'string' || state instanceof String) {
         let regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
         return regionNames.of(state);
     }
@@ -109,7 +109,7 @@ const CitiesInfo = (props) => {
 const LocationInfo = (props) => {
     const country = getNameFromState(props.location.location.state);
     return (
-        <Card variant="outlined" sx={{ maxWidth: "75%", mx: "auto", mt: "20px" }}>
+        <Card variant="outlined" sx={{ maxWidth: "75%", mx: "auto", mt: "20px", textAlign: "center"}}>
             <CardContent>
                 <Typography variant="h4" sx={{ mb: "20px" }}>Your dart landed near: {props.location.location.city} {country ? "in " + country : null}</Typography>
                 <CitiesInfo location={props.location} />
@@ -119,9 +119,13 @@ const LocationInfo = (props) => {
 }
 
 const Map = (props) => {
+    console.log(process.env.REACT_APP_TEST);
     const [coords, setCoords] = React.useState(center);
+    const initialZoom = 5;
+    let zoom = initialZoom;
     // get user location on first render only
-    React.useEffect(() => {
+    React.useEffect(() => 
+    {
         if ("geolocation" in navigator) {
             console.log("Available");
             navigator.geolocation.getCurrentPosition((position) => {
@@ -138,12 +142,12 @@ const Map = (props) => {
     }, [props.location]);
     return (
         <LoadScript
-            googleMapsApiKey="AIzaSyBCNGz2YRr-u5F5PVO-OXwX6lkz-or9Ud0"
+            googleMapsApiKey={process.env.REACT_APP_API_KEY}
         >
             <GoogleMap
                 mapContainerStyle={MapContainerStyle}
                 center={coords}
-                zoom={5}
+                zoom={zoom}
             >
                 <Marker position={coords} />
             </GoogleMap>
