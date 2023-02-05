@@ -20,3 +20,8 @@ This is an app build using NodeJS and ReactJS. It allows the user to throw a dar
     - This provides a list of nearby cities and towns with a population of 50,000 or more within 100KM. It is possible for none to be found.
     - If nearby major locations are found, the closest and most populous is used.
 - The processed data from the two API calls is then combined into a single JSON object and returned to the client.
+
+## TODO
+- Add markers on the found major locations.
+- If we have the user's location, add the distance from the user to random location.
+- Make it look nice.

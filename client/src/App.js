@@ -119,7 +119,6 @@ const LocationInfo = (props) => {
 }
 
 const Map = (props) => {
-    console.log(process.env.REACT_APP_TEST);
     const [coords, setCoords] = React.useState(center);
     const initialZoom = 5;
     let zoom = initialZoom;
@@ -127,7 +126,6 @@ const Map = (props) => {
     React.useEffect(() => 
     {
         if ("geolocation" in navigator) {
-            console.log("Available");
             navigator.geolocation.getCurrentPosition((position) => {
                 setCoords({ lat: position.coords.latitude, lng: position.coords.longitude });
             });
