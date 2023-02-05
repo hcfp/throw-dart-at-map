@@ -4,18 +4,13 @@ import { AppBar, Typography, Toolbar, Button, Card, CardActions, CardContent, Th
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import FlightLandIcon from '@mui/icons-material/FlightLand';
+import SendTwoToneIcon from '@mui/icons-material/SendTwoTone';
 import CssBaseline from '@mui/material/CssBaseline/CssBaseline';
 
-const containerStyle = {
+const MapContainerStyle = {
     width: '100%',
     height: '75vh',
 };
-
-const darkTheme = createTheme({
-    palette: {
-        mode: 'dark',
-    },
-});
 
 const lightTheme = createTheme({
     palette: {
@@ -32,8 +27,8 @@ const lightTheme = createTheme({
 });
 
 const center = {
-    lat: -26.235277777,
-    lng: +28.37
+    lat: 53.5769,
+    lng: -2.4282
 };
 
 const coordAPI = "/api/randomLocation";
@@ -56,12 +51,12 @@ function App() {
             <CssBaseline />
             <TitleBar />
             <main>
-                <Card variant="outlined" sx={{ maxWidth: "75%", mx: "auto", mt: "20px" }}>
+                <Card variant="outlined" sx={{ maxWidth: "75%", mx: "auto", mt: "10px" }}>
                     <CardContent>
                         <Map location={location} />
                     </CardContent>
                     <CardActions>
-                        <Button variant="contained" sx={{ margin: 'auto' }} size="large" onClick={handleThrow}>Throw</Button>
+                        <Button variant="contained" sx={{ margin: 'auto'}} size="medium" onClick={handleThrow} endIcon={<SendTwoToneIcon />}>Throw</Button>
                     </CardActions>
                 </Card>
                 {location ? <LocationInfo location={location} /> : null}
@@ -124,16 +119,29 @@ const LocationInfo = (props) => {
 }
 
 const Map = (props) => {
-    let coords = center
-    if (props.location) {
-        coords = { lat: Number(props.location.location.latt), lng: Number(props.location.location.longt) };
-    }
+    const [coords, setCoords] = React.useState(center);
+    // get user location on first render only
+    React.useEffect(() => {
+        if ("geolocation" in navigator) {
+            console.log("Available");
+            navigator.geolocation.getCurrentPosition((position) => {
+                setCoords({ lat: position.coords.latitude, lng: position.coords.longitude });
+            });
+        } else { console.log("User location not available");}
+    }, []);
+
+    // if the location prop exists, set the coords to the location
+    React.useEffect(() => {
+        if (props.location) {
+            setCoords({ lat: Number(props.location.location.latt), lng: Number(props.location.location.longt) });
+        }
+    }, [props.location]);
     return (
         <LoadScript
             googleMapsApiKey="AIzaSyBCNGz2YRr-u5F5PVO-OXwX6lkz-or9Ud0"
         >
             <GoogleMap
-                mapContainerStyle={containerStyle}
+                mapContainerStyle={MapContainerStyle}
                 center={coords}
                 zoom={5}
             >
