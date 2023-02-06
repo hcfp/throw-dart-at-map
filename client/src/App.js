@@ -39,12 +39,21 @@ const getRandomLocation = async () => {
     return data;
 }
 
+const removeDuplicateLocations = (locations) => {
+    if (locations.largest && locations.closestMajor) {
+        if (locations.largest.id === locations.closestMajor.id) {
+            locations.closestMajor = null;
+        }
+    }
+    return locations;
+}
+
 function App() {
-    const [location, setLocation] = React.useState(null);
+    const [locations, setLocations] = React.useState(null);
 
     const handleThrow = async () => {
         const randomLocation = await getRandomLocation();
-        setLocation(randomLocation);
+        setLocations(removeDuplicateLocations(randomLocation));
     }
     return (
         <ThemeProvider theme={lightTheme} >
@@ -53,13 +62,13 @@ function App() {
             <main>
                 <Card variant="outlined" sx={{ maxWidth: "75%", mx: "auto", mt: "10px" }}>
                     <CardContent>
-                        <Map location={location} />
+                        <Map locations={locations} />
                     </CardContent>
                     <CardActions>
-                        <Button variant="contained" sx={{ margin: 'auto'}} size="medium" onClick={handleThrow} endIcon={<SendTwoToneIcon />}>Throw</Button>
+                        <Button variant="contained" sx={{ margin: 'auto' }} size="large" onClick={handleThrow} endIcon={<SendTwoToneIcon />}>Throw a dart</Button>
                     </CardActions>
                 </Card>
-                {location ? <LocationInfo location={location} /> : null}
+                {locations ? <LocationInfo locations={locations} /> : null}
             </main>
         </ThemeProvider>
     );
@@ -75,69 +84,80 @@ const getNameFromState = (state) => {
 
 const CitiesInfo = (props) => {
     // Check if both exists
-    if ((props.location.largest && props.location.closestMajor)) {
-        // If they are the same, only display one
-        if (props.location.largest.id === props.location.closestMajor.id) {
-            return (
-                <>
-                    <Typography variant="h5">A nearby town or city is {props.location.largest.name} with a population of {props.location.largest.population} ({props.location.largest.distance}KM away)</Typography>
-                </>
-            )
-        }
-        else {
-            return (
-                <>
-                    <Typography variant="h5">The largest nearby town or city is {props.location.largest.name} with a population of {props.location.largest.population} ({props.location.largest.distance}KM away)</Typography>
-                    <Typography variant="h5">The closest major town or city is {props.location.closestMajor.name} with a population of {props.location.closestMajor.population} ({props.location.closestMajor.distance}KM away)</Typography>
-                </>
-            )
-        }
-    }
+    const { largest, closestMajor } = props.locations;
 
     // If neither exist display no nearby cities
-    if (!props.location.largest && !props.location.closestMajor) {
-        return <Typography variant="h5">No notable nearby town or cities</Typography>
+    if (!largest && !closestMajor) {
+        return <Typography variant="h5">No notable nearby towns or cities</Typography>
     }
 
-    // Handle if only one exists
-    if (props.location.largest && !props.location.closestMajor) {
-        return <Typography variant="h5">The largest nearby town or city is {props.location.largest.name} with a population of {props.location.largest.population} ({props.location.largest.distance}KM away)</Typography>
+    // If both exist display both
+    if ((largest && closestMajor)) {
+        return (
+            <>
+                <Typography variant="h5">The largest nearby town or city is {largest.name} with a population of {largest.population.toLocaleString('en-uk')} ({largest.distance}KM away)</Typography>
+                <Typography variant="h5">The closest major town or city is {closestMajor.name} with a population of {closestMajor.population.toLocaleString('en-uk')} ({closestMajor.distance}KM away)</Typography>
+            </>
+        )
     }
-    return <Typography variant="h5">The closest town or city is {props.location.closestMajor.name} with a population of {props.location.closestMajor.population} ({props.location.closestMajor.distance}KM away)</Typography>
+    // Handle if only one exists
+    if (largest && !closestMajor) {
+        return <Typography variant="h5">The largest nearby town or city is {largest.name} with a population of {largest.population.toLocaleString('en-uk')} ({largest.distance}KM away)</Typography>
+    }
+    return <Typography variant="h5">The closest town or city is {closestMajor.name} with a population of {closestMajor.population.toLocaleString('en-uk')} ({closestMajor.distance}KM away)</Typography>
 }
 
 const LocationInfo = (props) => {
-    const country = getNameFromState(props.location.location.state);
+    const location = props.locations.location;
+    const country = getNameFromState(location.state);
     return (
-        <Card variant="outlined" sx={{ maxWidth: "75%", mx: "auto", mt: "20px", textAlign: "center"}}>
+        <Card variant="outlined" sx={{ maxWidth: "75%", mx: "auto", mt: "20px", textAlign: "center" }}>
             <CardContent>
-                <Typography variant="h4" sx={{ mb: "20px" }}>Your dart landed near: {props.location.location.city} {country ? "in " + country : null}</Typography>
-                <CitiesInfo location={props.location} />
+                <Typography variant="h4" sx={{ mb: "20px" }}>Your dart landed near: {location.city} {country ? "in " + country : null}</Typography>
+                <CitiesInfo locations={props.locations} />
             </CardContent>
         </Card>
     )
 }
 
+
 const Map = (props) => {
+    console.log(props);
     const [coords, setCoords] = React.useState(center);
-    const initialZoom = 5;
-    let zoom = initialZoom;
+    const [largestCoords, setLargestCoords] = React.useState(null);
+    const [closestMajorCoords, setClosestMajorCoords] = React.useState(null);
+
     // get user location on first render only
-    React.useEffect(() => 
-    {
+    React.useEffect(() => {
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition((position) => {
                 setCoords({ lat: position.coords.latitude, lng: position.coords.longitude });
             });
-        } else { console.log("User location not available");}
+        } else { console.log("User location not available"); }
     }, []);
 
     // if the location prop exists, set the coords to the location
     React.useEffect(() => {
-        if (props.location) {
-            setCoords({ lat: Number(props.location.location.latt), lng: Number(props.location.location.longt) });
+        // destructuring props.locations
+        if (props.locations === null) return;
+        const { location, largest, closestMajor } = props.locations;
+        if (props.locations.location) {
+            setCoords({ lat: Number(location.latt), lng: Number(location.longt) });
         }
-    }, [props.location]);
+        if (props.locations.largest) {
+            setLargestCoords({ lat: Number(largest.latitude), lng: Number(largest.longitude) });
+        }
+        else {
+            setLargestCoords(null);
+        }
+        if (props.locations.closestMajor) {
+            setClosestMajorCoords({ lat: Number(closestMajor.latitude), lng: Number(closestMajor.longitude) });
+        }
+        else {
+            setClosestMajorCoords(null);
+        }
+    }, [props.locations]);
+
     return (
         <LoadScript
             googleMapsApiKey={process.env.REACT_APP_API_KEY}
@@ -145,9 +165,11 @@ const Map = (props) => {
             <GoogleMap
                 mapContainerStyle={MapContainerStyle}
                 center={coords}
-                zoom={zoom}
+                zoom={5}
             >
-                <Marker position={coords} />
+                <Marker position={coords} label={{ text: "🎯", fontSize: "36px" }} />
+                largestCoords ? <Marker position={largestCoords} label={{ text: "Largest nearby town or city", fontWeight: "bold", fontSize: "18px"}} /> : null
+                closestMajorCoords ? <Marker position={closestMajorCoords} label={{ text: "Closest nearby town or city", fontWeight: "bold", fontSize: "18px" }} /> : null
             </GoogleMap>
         </LoadScript>
     )
@@ -167,4 +189,4 @@ function TitleBar() {
     );
 }
 
-export default React.memo(App)
+export default React.memo(App);
