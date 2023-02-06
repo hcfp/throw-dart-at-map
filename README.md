@@ -22,6 +22,6 @@ This is an app build using NodeJS and ReactJS. It allows the user to throw a dar
 - The processed data from the two API calls is then combined into a single JSON object and returned to the client.
 
 ## TODO
-- Add markers on the found major locations.
 - If we have the user's location, add the distance from the user to random location.
+- Make markers clickable and display
 - Make it look nice.
