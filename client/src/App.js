@@ -84,43 +84,36 @@ const getNameFromState = (state) => {
 
 const CitiesInfo = (props) => {
     // Check if both exists
-    if ((props.locations.largest && props.locations.closestMajor)) {
-        // If they are the same, only display one
-        if (props.locations.largest.id === props.locations.closestMajor.id) {
-            return (
-                <>
-                    <Typography variant="h5">A nearby town or city is {props.locations.largest.name} with a population of {props.locations.largest.population.toLocaleString('en-uk')} ({props.locations.largest.distance}KM away)</Typography>
-                </>
-            )
-        }
-        else {
-            return (
-                <>
-                    <Typography variant="h5">The largest nearby town or city is {props.locations.largest.name} with a population of {props.locations.largest.population.toLocaleString('en-uk')} ({props.locations.largest.distance}KM away)</Typography>
-                    <Typography variant="h5">The closest major town or city is {props.locations.closestMajor.name} with a population of {props.locations.closestMajor.population.toLocaleString('en-uk')} ({props.locations.closestMajor.distance}KM away)</Typography>
-                </>
-            )
-        }
-    }
+    const { largest, closestMajor } = props.locations;
 
     // If neither exist display no nearby cities
-    if (!props.locations.largest && !props.locations.closestMajor) {
+    if (!largest && !closestMajor) {
         return <Typography variant="h5">No notable nearby towns or cities</Typography>
     }
 
-    // Handle if only one exists
-    if (props.locations.largest && !props.locations.closestMajor) {
-        return <Typography variant="h5">The largest nearby town or city is {props.locations.largest.name} with a population of {props.locations.largest.population.toLocaleString('en-uk')} ({props.locations.largest.distance}KM away)</Typography>
+    // If both exist display both
+    if ((largest && closestMajor)) {
+        return (
+            <>
+                <Typography variant="h5">The largest nearby town or city is {largest.name} with a population of {largest.population.toLocaleString('en-uk')} ({largest.distance}KM away)</Typography>
+                <Typography variant="h5">The closest major town or city is {closestMajor.name} with a population of {closestMajor.population.toLocaleString('en-uk')} ({closestMajor.distance}KM away)</Typography>
+            </>
+        )
     }
-    return <Typography variant="h5">The closest town or city is {props.locations.closestMajor.name} with a population of {props.locations.closestMajor.population.toLocaleString('en-uk')} ({props.locations.closestMajor.distance}KM away)</Typography>
+    // Handle if only one exists
+    if (largest && !closestMajor) {
+        return <Typography variant="h5">The largest nearby town or city is {largest.name} with a population of {largest.population.toLocaleString('en-uk')} ({largest.distance}KM away)</Typography>
+    }
+    return <Typography variant="h5">The closest town or city is {closestMajor.name} with a population of {closestMajor.population.toLocaleString('en-uk')} ({closestMajor.distance}KM away)</Typography>
 }
 
 const LocationInfo = (props) => {
-    const country = getNameFromState(props.locations.location.state);
+    const location = props.locations.location;
+    const country = getNameFromState(location.state);
     return (
         <Card variant="outlined" sx={{ maxWidth: "75%", mx: "auto", mt: "20px", textAlign: "center" }}>
             <CardContent>
-                <Typography variant="h4" sx={{ mb: "20px" }}>Your dart landed near: {props.locations.location.city} {country ? "in " + country : null}</Typography>
+                <Typography variant="h4" sx={{ mb: "20px" }}>Your dart landed near: {location.city} {country ? "in " + country : null}</Typography>
                 <CitiesInfo locations={props.locations} />
             </CardContent>
         </Card>
@@ -145,15 +138,23 @@ const Map = (props) => {
 
     // if the location prop exists, set the coords to the location
     React.useEffect(() => {
+        // destructuring props.locations
         if (props.locations === null) return;
+        const { location, largest, closestMajor } = props.locations;
         if (props.locations.location) {
-            setCoords({ lat: Number(props.locations.location.latt), lng: Number(props.locations.location.longt) });
+            setCoords({ lat: Number(location.latt), lng: Number(location.longt) });
         }
         if (props.locations.largest) {
-            setLargestCoords({ lat: Number(props.locations.largest.latitude), lng: Number(props.locations.largest.longitude) });
+            setLargestCoords({ lat: Number(largest.latitude), lng: Number(largest.longitude) });
+        }
+        else {
+            setLargestCoords(null);
         }
         if (props.locations.closestMajor) {
-            setClosestMajorCoords({ lat: Number(props.locations.closestMajor.latitude), lng: Number(props.locations.closestMajor.longitude) });
+            setClosestMajorCoords({ lat: Number(closestMajor.latitude), lng: Number(closestMajor.longitude) });
+        }
+        else {
+            setClosestMajorCoords(null);
         }
     }, [props.locations]);
 
@@ -166,9 +167,9 @@ const Map = (props) => {
                 center={coords}
                 zoom={5}
             >
-                <Marker position={coords} label={{ text: "🎯", fontSize: "30px" }} />
-                largestCoords ? <Marker position={largestCoords} label={"Largest nearby town or city"} /> : null
-                closestMajorCoords ? <Marker position={closestMajorCoords} label={"Closest nearby town or city"} /> : null
+                <Marker position={coords} label={{ text: "🎯", fontSize: "36px" }} />
+                largestCoords ? <Marker position={largestCoords} label={{ text: "Largest nearby town or city", fontWeight: "bold", fontSize: "18px"}} /> : null
+                closestMajorCoords ? <Marker position={closestMajorCoords} label={{ text: "Closest nearby town or city", fontWeight: "bold", fontSize: "18px" }} /> : null
             </GoogleMap>
         </LoadScript>
     )
