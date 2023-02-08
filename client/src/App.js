@@ -50,6 +50,15 @@ const removeDuplicateLocations = (locations) => {
 
 function App() {
     const [locations, setLocations] = React.useState(null);
+    const [userCoords, setUserCoords] = React.useState(null);
+
+    React.useEffect(() => {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                setUserCoords({ lat: position.coords.latitude, lng: position.coords.longitude });
+            });
+        } else { console.log("User location not available"); }
+    }, []);
 
     const handleThrow = async () => {
         const randomLocation = await getRandomLocation();
@@ -68,7 +77,7 @@ function App() {
                         <Button variant="contained" sx={{ margin: 'auto' }} size="large" onClick={handleThrow} endIcon={<SendTwoToneIcon />}>Throw a dart</Button>
                     </CardActions>
                 </Card>
-                {locations ? <LocationInfo locations={locations} /> : null}
+                {locations ? <LocationInfo locations={locations} userCoords={userCoords} /> : null}
             </main>
         </ThemeProvider>
     );
@@ -110,10 +119,27 @@ const CitiesInfo = (props) => {
 const LocationInfo = (props) => {
     const location = props.locations.location;
     const country = getNameFromState(location.state);
+    const [distance, setDistance] = React.useState(null);
+
+    React.useEffect(() => {
+        const getDistanceFromLocation = async () => {
+            const response = await fetch('/api/distance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ "coords1": props.userCoords, "coords2": { lat: Number(location.latt), lng: Number(location.longt) } })
+            })
+            const distanceToMarker = await response.json();
+            console.log(distanceToMarker);
+            setDistance(distanceToMarker);
+        }
+        getDistanceFromLocation();
+    }, [props.locations, location, props.userCoords])
     return (
         <Card variant="outlined" sx={{ maxWidth: "75%", mx: "auto", mt: "20px", textAlign: "center" }}>
             <CardContent>
-                <Typography variant="h4" sx={{ mb: "20px" }}>Your dart landed near: {location.city} {country ? "in " + country : null}</Typography>
+                <Typography variant="h4" sx={{ mb: "20px" }}>Your dart landed near: {location.city} {country ? "in " + country : null} ({distance}KM away)</Typography>
                 <CitiesInfo locations={props.locations} />
             </CardContent>
         </Card>
@@ -122,7 +148,6 @@ const LocationInfo = (props) => {
 
 
 const Map = (props) => {
-    console.log(props);
     const [coords, setCoords] = React.useState(center);
     const [largestCoords, setLargestCoords] = React.useState(null);
     const [closestMajorCoords, setClosestMajorCoords] = React.useState(null);
@@ -135,7 +160,6 @@ const Map = (props) => {
             });
         } else { console.log("User location not available"); }
     }, []);
-
     // if the location prop exists, set the coords to the location
     React.useEffect(() => {
         // destructuring props.locations
@@ -168,7 +192,7 @@ const Map = (props) => {
                 zoom={5}
             >
                 <Marker position={coords} label={{ text: "🎯", fontSize: "36px" }} />
-                largestCoords ? <Marker position={largestCoords} label={{ text: "Largest nearby town or city", fontWeight: "bold", fontSize: "18px"}} /> : null
+                largestCoords ? <Marker position={largestCoords} label={{ text: "Largest nearby town or city", fontWeight: "bold", fontSize: "18px" }} /> : null
                 closestMajorCoords ? <Marker position={closestMajorCoords} label={{ text: "Closest nearby town or city", fontWeight: "bold", fontSize: "18px" }} /> : null
             </GoogleMap>
         </LoadScript>

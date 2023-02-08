@@ -5,6 +5,7 @@ const PORT = process.env.PORT || 3001;
 
 const app = express();
 
+app.use(express.json())
 app.use(express.static(path.join(__dirname, 'build')));
 
 app.get('/', function (req, res) {
@@ -23,7 +24,7 @@ const getNearbyCities = async (lat, lng) => {
     const data = await response.json();
 
     let dataArray = data.data;
-    console.log("Nearby places", dataArray);
+    //console.log("Nearby places", dataArray);
     let largestNearbyCity = null;
     let closestNearbyCity = null;
     if (dataArray.length !== 0) {
@@ -39,15 +40,37 @@ const getNearbyCities = async (lat, lng) => {
 const getRandomLocation = async () => {
     const response = await fetch(coordURL, { method: 'GET' });
     const data = await response.json();
-    console.log("location", data);
+    //console.log("location", data);
     return data.nearest;
 }
+
+function haversine_distance(coords1, coords2) {
+    var R = 6357; // Radius of the Earth in KM
+    var radiansLat1 = coords1.lat * (Math.PI / 180); // Convert degrees to radians
+    var radiansLat2 = coords2.lat * (Math.PI / 180); // Convert degrees to radians
+    var diffLat = radiansLat2 - radiansLat1; // Radian difference (latitudes)
+    var diffLon = (coords2.lng - coords1.lng) * (Math.PI / 180); // Radian difference (longitudes)
+
+    var d = 2 * R * Math.asin(Math.sqrt(Math.sin(diffLat / 2) * Math.sin(diffLat / 2) + Math.cos(radiansLat1) * Math.cos(radiansLat2) * Math.sin(diffLon / 2) * Math.sin(diffLon / 2)));
+    return d;
+}
+
+const getDistance = (coords1, coords2) => {
+    return haversine_distance(coords1, coords2).toFixed(2);
+}
+
+app.post("/api/distance", async (req, res) => {
+    console.log(req.body);
+    distance = getDistance(req.body.coords1, req.body.coords2);
+    console.log(distance);
+    res.json(getDistance(req.body.coords1, req.body.coords2));
+});
 
 app.get("/api/randomLocation", async (req, res) => {
     const location = await getRandomLocation();
     const cities = await getNearbyCities(location.latt, location.longt);
     const locationCities = { location: location, ...cities };
-    console.log("Final", locationCities);
+    //console.log("Final", locationCities);
     res.json(locationCities);
 });
 
