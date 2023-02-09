@@ -1,0 +1,33 @@
+html {
+	scroll-behavior: smooth;
+}
+
+.mainTitle {
+    margin: 0;
+    color: aliceblue;
+}
+
+.downIcon {
+    color: aliceblue;
+    margin-left: auto;
+    margin-right: auto; 
+}
+
+.wavesBackground {
+    aspect-ratio: 960/300;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    height: 100vh;
+    width: 100vw;
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    flex-direction: column;
+    text-align: center;
+}
+
+.layer1 {
+    background-image: url(layered-waves-haikei.svg);
+}

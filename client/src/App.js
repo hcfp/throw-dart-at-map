@@ -1,29 +1,22 @@
 import React from 'react'
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import { AppBar, Typography, Toolbar, Button, Card, CardActions, CardContent, ThemeProvider, createTheme } from '@mui/material';
-import TravelExploreIcon from '@mui/icons-material/TravelExplore';
-import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
-import FlightLandIcon from '@mui/icons-material/FlightLand';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import SendTwoToneIcon from '@mui/icons-material/SendTwoTone';
 import CssBaseline from '@mui/material/CssBaseline/CssBaseline';
+import './index.css';
 
 const MapContainerStyle = {
     width: '100%',
     height: '70vh',
 };
 
-const lightTheme = createTheme({
+const themeLight = createTheme({
     palette: {
-        primary: {
-            main: '#90e6f9',
-        },
-        secondary: {
-            main: '#f9a390',
-        },
         background: {
-            paper: '#f9a390'
-        },
-    },
+            default: "#001220"
+        }
+    }
 });
 
 const center = {
@@ -65,20 +58,31 @@ function App() {
         setLocations(removeDuplicateLocations(randomLocation));
     }
     return (
-        <ThemeProvider theme={lightTheme} >
-            <CssBaseline />
-            <TitleBar />
+        <ThemeProvider theme={themeLight}>
+        <CssBaseline>
             <main>
-                <Card variant="outlined" sx={{ maxWidth: "75%", mx: "auto", mt: "10px" }}>
-                    <CardContent>
-                        <Map locations={locations} />
-                    </CardContent>
-                    <CardActions>
-                        <Button variant="contained" sx={{ margin: 'auto' }} size="large" onClick={handleThrow} endIcon={<SendTwoToneIcon />}>Throw a dart</Button>
-                    </CardActions>
-                </Card>
-                {locations ? <LocationInfo locations={locations} userCoords={userCoords} /> : null}
+                <div className="wavesBackground layer1">
+                    <Typography variant="h1" className="mainTitle" textAlign="center" sx={{ textShadow: "1px 1px #DCDCDC"}}>Throw a Dart at a Map</Typography>
+                    <Typography variant="h4" textAlign="center" className="mainTitle">Travel the world, one dart at a time</Typography>
+                    <a href="#dartMap"><KeyboardArrowDownIcon style={{ color: "white", fontSize: "64px" }} className="downIcon" /></a>
+                </div>
+                <div style={{ background: themeLight.palette.primary.mainGradient }}>
+                <section id="dartMap">
+                    <Card variant="outlined" sx={{ maxWidth: "75%", mx: "auto", mt: "10px", mb:"30px"}}>
+                        <CardContent>
+                            <Map locations={locations} />
+                        </CardContent>
+                        <CardActions>
+                            <Button variant="contained" sx={{ margin: 'auto' }} size="large" onClick={handleThrow} endIcon={<SendTwoToneIcon />}>Throw a dart</Button>
+                        </CardActions>
+                    </Card>
+                </section>
+                <section>
+                    {locations ? <LocationInfo locations={locations} userCoords={userCoords} /> : null}
+                </section>
+                </div>
             </main>
+        </CssBaseline>
         </ThemeProvider>
     );
 }
@@ -104,16 +108,16 @@ const CitiesInfo = (props) => {
     if ((largest && closestMajor)) {
         return (
             <>
-                <Typography variant="h5">The largest nearby town or city is {largest.name} with a population of {largest.population.toLocaleString('en-uk')} ({largest.distance}KM away)</Typography>
-                <Typography variant="h5">The closest major town or city is {closestMajor.name} with a population of {closestMajor.population.toLocaleString('en-uk')} ({closestMajor.distance}KM away)</Typography>
+                <Typography variant="h5">The largest nearby town or city is {largest.name} with a population of {largest.population.toLocaleString('en-uk')} ({largest.distance}KM away from dart)</Typography>
+                <Typography variant="h5">The closest major town or city is {closestMajor.name} with a population of {closestMajor.population.toLocaleString('en-uk')} ({closestMajor.distance}KM away from dart)</Typography>
             </>
         )
     }
     // Handle if only one exists
     if (largest && !closestMajor) {
-        return <Typography variant="h5">The largest nearby town or city is {largest.name} with a population of {largest.population.toLocaleString('en-uk')} ({largest.distance}KM away)</Typography>
+        return <Typography variant="h5">The largest nearby town or city is {largest.name} with a population of {largest.population.toLocaleString('en-uk')} ({largest.distance}KM away from dart)</Typography>
     }
-    return <Typography variant="h5">The closest town or city is {closestMajor.name} with a population of {closestMajor.population.toLocaleString('en-uk')} ({closestMajor.distance}KM away)</Typography>
+    return <Typography variant="h5">The closest town or city is {closestMajor.name} with a population of {closestMajor.population.toLocaleString('en-uk')} ({closestMajor.distance}KM away from dart)</Typography>
 }
 
 const LocationInfo = (props) => {
@@ -197,20 +201,6 @@ const Map = (props) => {
             </GoogleMap>
         </LoadScript>
     )
-}
-
-function TitleBar() {
-    return (
-        <AppBar position="relative">
-            <Toolbar>
-                <TravelExploreIcon sx={{ fontSize: '55px' }} />
-                <Typography variant="h2" sx={{ flexGrow: 1 }}>Throw a Dart at a Map</Typography>
-                <FlightTakeoffIcon fontSize="large" />
-                <Typography variant="h6" sx={{ mx: 2 }}>Put trust in the dart and see where it takes you</Typography>
-                <FlightLandIcon fontSize="large" />
-            </Toolbar>
-        </AppBar>
-    );
 }
 
 export default React.memo(App);
