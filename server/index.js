@@ -70,7 +70,6 @@ app.get("/api/randomLocation", async (req, res) => {
     const location = await getRandomLocation();
     const cities = await getNearbyCities(location.latt, location.longt);
     const locationCities = { location: location, ...cities };
-    //console.log("Final", locationCities);
     res.json(locationCities);
 });
 
